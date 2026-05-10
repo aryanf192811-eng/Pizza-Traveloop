@@ -1,0 +1,195 @@
+const PDFDocument = require('pdfkit');
+
+const generateInvoicePDF = (invoiceData, res) => {
+  const {
+    invoice_number,
+    generated_date,
+    is_paid,
+    trip,
+    user,
+    line_items,
+    subtotal,
+    tax_rate,
+    discount,
+    grand_total,
+  } = invoiceData;
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader(
+    'Content-Disposition',
+    `attachment; filename="${invoice_number}.pdf"`
+  );
+
+  const doc = new PDFDocument({ size: 'A4', margins: { top: 50, left: 50, right: 50, bottom: 50 } });
+  doc.pipe(res);
+
+  // ── Header ──
+  doc
+    .fontSize(28)
+    .font('Helvetica-Bold')
+    .fillColor('#2563EB')
+    .text('TRAVELOOP', 50, 50);
+
+  doc
+    .fontSize(12)
+    .font('Helvetica')
+    .fillColor('#64748B')
+    .text('Travel Expense Invoice', 50, doc.y + 4);
+
+  // Horizontal line 1
+  const lineY1 = doc.y + 12;
+  doc
+    .moveTo(50, lineY1)
+    .lineTo(545, lineY1)
+    .strokeColor('#E2E8F0')
+    .lineWidth(1)
+    .stroke();
+
+  // ── Two-column info block ──
+  const infoY = lineY1 + 20;
+
+  // Left: Invoice Details
+  doc
+    .fontSize(10)
+    .font('Helvetica-Bold')
+    .fillColor('#1E293B')
+    .text('Invoice Details', 50, infoY);
+
+  doc
+    .font('Courier')
+    .fontSize(9)
+    .fillColor('#334155')
+    .text(`Invoice #: ${invoice_number}`, 50, doc.y + 4);
+
+  const genDate = generated_date
+    ? new Date(generated_date).toLocaleDateString('en-IN')
+    : 'N/A';
+
+  doc.font('Helvetica').fontSize(9).text(`Date: ${genDate}`, 50, doc.y + 2);
+  doc.text(`Status: ${is_paid ? 'PAID' : 'UNPAID'}`, 50, doc.y + 2);
+
+  // Right: Traveler Info
+  const rightX = 320;
+  doc.font('Helvetica-Bold').fontSize(10).fillColor('#1E293B').text('Traveler', rightX, infoY);
+  doc
+    .font('Helvetica')
+    .fontSize(9)
+    .fillColor('#334155')
+    .text(`${user.first_name} ${user.last_name}`, rightX, doc.y + 4);
+  doc.text(user.email, rightX, doc.y + 2);
+  doc.text(`Trip: ${trip.title}`, rightX, doc.y + 2);
+
+  const tripStart = trip.start_date ? new Date(trip.start_date).toLocaleDateString('en-IN') : '';
+  const tripEnd = trip.end_date ? new Date(trip.end_date).toLocaleDateString('en-IN') : '';
+  doc.text(`Dates: ${tripStart} — ${tripEnd}`, rightX, doc.y + 2);
+
+  // Horizontal line 2
+  const lineY2 = Math.max(doc.y, infoY + 70) + 12;
+  doc
+    .moveTo(50, lineY2)
+    .lineTo(545, lineY2)
+    .strokeColor('#E2E8F0')
+    .lineWidth(1)
+    .stroke();
+
+  // ── Line Items Table ──
+  const tableY = lineY2 + 20;
+
+  // Table header
+  doc
+    .fontSize(9)
+    .font('Helvetica-Bold')
+    .fillColor('#94A3B8')
+    .text('DESCRIPTION', 50, tableY)
+    .text('CATEGORY', 250, tableY)
+    .text('DATE', 350, tableY)
+    .text('AMOUNT (INR)', 450, tableY);
+
+  let rowY = tableY + 16;
+  (line_items || []).forEach((item, idx) => {
+    const isEven = idx % 2 === 0;
+    if (isEven) {
+      doc.rect(50, rowY - 4, 495, 24).fillColor('#F8FAFC').fill();
+    }
+
+    const itemDate = item.expense_date
+      ? new Date(item.expense_date).toLocaleDateString('en-IN')
+      : '';
+
+    doc
+      .font('Helvetica')
+      .fontSize(9)
+      .fillColor('#334155')
+      .text(item.description || '', 50, rowY, { width: 195, ellipsis: true })
+      .text(item.category || '', 250, rowY)
+      .text(itemDate, 350, rowY)
+      .text(`₹${Number(item.amount).toFixed(2)}`, 450, rowY);
+
+    rowY += 24;
+  });
+
+  // ── Totals ──
+  const totalsY = rowY + 16;
+  const tax_amount = (Number(subtotal) * Number(tax_rate)) / 100;
+
+  doc
+    .font('Helvetica')
+    .fontSize(10)
+    .fillColor('#334155')
+    .text(`Subtotal:`, 380, totalsY)
+    .text(`₹${Number(subtotal).toFixed(2)}`, 460, totalsY, { align: 'right', width: 85 });
+
+  doc
+    .text(`Tax (${tax_rate}%):`, 380, totalsY + 18)
+    .text(`₹${tax_amount.toFixed(2)}`, 460, totalsY + 18, { align: 'right', width: 85 });
+
+  doc
+    .text(`Discount:`, 380, totalsY + 36)
+    .text(`-₹${Number(discount).toFixed(2)}`, 460, totalsY + 36, { align: 'right', width: 85 });
+
+  doc
+    .font('Helvetica-Bold')
+    .fontSize(14)
+    .fillColor('#1E293B')
+    .text('GRAND TOTAL:', 330, totalsY + 58)
+    .text(`₹${Number(grand_total).toFixed(2)}`, 430, totalsY + 58, { align: 'right', width: 115 });
+
+  // ── Status Stamp ──
+  const stampY = totalsY + 110;
+  if (is_paid) {
+    doc.save();
+    doc.translate(297, stampY);
+    doc.rotate(-25);
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(48)
+      .fillColor('#10B981')
+      .fillOpacity(0.3)
+      .text('✓ PAID', -80, -24, { align: 'center' });
+    doc.restore();
+    doc.fillOpacity(1);
+  } else {
+    doc.save();
+    doc.translate(297, stampY);
+    doc.rotate(-25);
+    doc
+      .font('Helvetica-Bold')
+      .fontSize(48)
+      .fillColor('#EF4444')
+      .fillOpacity(0.3)
+      .text('UNPAID', -80, -24, { align: 'center' });
+    doc.restore();
+    doc.fillOpacity(1);
+  }
+
+  // ── Footer ──
+  doc
+    .fontSize(8)
+    .font('Helvetica')
+    .fillColor('#94A3B8')
+    .text('Generated by Traveloop • traveloop.app', 50, 780, { align: 'center', width: 495 });
+
+  doc.end();
+};
+
+module.exports = { generateInvoicePDF };

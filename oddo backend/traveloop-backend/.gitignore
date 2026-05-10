@@ -1,0 +1,22 @@
+# Dependencies
+node_modules
+
+# Environment variables — NEVER commit .env
+.env
+.env.local
+
+# Uploaded files (user-generated content — not tracked in git)
+uploads/*
+!uploads/.gitkeep
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.sw?
