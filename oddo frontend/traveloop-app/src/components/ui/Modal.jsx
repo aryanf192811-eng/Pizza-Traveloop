@@ -10,7 +10,9 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' })
           <h2 className="modal-title">{title}</h2>
           <button className="modal-close" onClick={onClose}><X size={16} /></button>
         </div>
-        {children}
+        <div className="modal-body" style={{ paddingBottom: 24 }}>
+          {children}
+        </div>
       </div>
     </div>,
     document.body

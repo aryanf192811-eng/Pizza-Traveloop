@@ -19,11 +19,14 @@ export default function AppLayout() {
   const { pathname } = useLocation();
   const title = TITLES[pathname] || '';
 
+  const handleToggle = (val) => setCollapsed(val);
+
   return (
     <div className="app-layout">
       <Sidebar
         mobileOpen={mobileOpen}
         onMobileClose={() => setMobileOpen(false)}
+        onCollapse={handleToggle}
       />
       <div className={`main-content${collapsed ? ' collapsed' : ''}`}>
         <Navbar
@@ -32,7 +35,9 @@ export default function AppLayout() {
           title={title}
         />
         <main>
-          <Outlet />
+          <div className="main-surface">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

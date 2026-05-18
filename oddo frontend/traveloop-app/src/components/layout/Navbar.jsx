@@ -18,7 +18,7 @@ export default function Navbar({ collapsed, onMenuClick, title }) {
   }, []);
 
   return (
-    <header className={`navbar${collapsed ? ' collapsed' : ''}`}>
+    <header className={`navbar${collapsed ? ' collapsed' : ''} sticky top-0 z-50 bg-surface/70 backdrop-blur-xl shadow-[0px_4px_20px_rgba(59,130,246,0.04)] border-b border-outline-variant/20 transition-all duration-300`}>
       <div className="navbar-left">
         <button className="navbar-icon-btn hamburger" onClick={onMenuClick}><Menu size={18} /></button>
         {title && <span className="navbar-title">{title}</span>}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Save } from 'lucide-react';
+import { Upload, Save, User, Phone, MapPin, Key, Mail } from 'lucide-react';
 import api, { getApiError } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../hooks/useToast';
@@ -10,7 +10,7 @@ export default function ProfilePage() {
   const { updateUser } = useAuth();
   const { addToast } = useToast();
   const fileRef = useRef(null);
-  const [form, setForm] = useState({ first_name:'', last_name:'', email:'', phone:'', city:'', country:'', gemini_key:'' });
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', phone: '', city: '', country: '', gemini_key: '' });
   const [photo, setPhoto] = useState(null);
   const [preview, setPreview] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -19,7 +19,7 @@ export default function ProfilePage() {
   useEffect(() => {
     api.get('/auth/me').then(({ data: res }) => {
       const u = res.data;
-      setForm({ first_name: u.first_name||'', last_name: u.last_name||'', email: u.email||'', phone: u.phone||'', city: u.city||'', country: u.country||'', gemini_key: u.gemini_key||'' });
+      setForm({ first_name: u.first_name || '', last_name: u.last_name || '', email: u.email || '', phone: u.phone || '', city: u.city || '', country: u.country || '', gemini_key: u.gemini_key || '' });
       if (u.photo_url) {
         const url = u.photo_url.startsWith('http') ? u.photo_url : `${baseUrl}${u.photo_url}`;
         setPreview(url);
@@ -60,30 +60,52 @@ export default function ProfilePage() {
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto' }}>
-      <div className="page-header"><h1 className="page-title">Profile</h1></div>
+    <div style={{ maxWidth: 640, margin: '0 auto' }}>
+      {/* Hero banner */}
+      <div className="form-hero-banner" style={{ marginBottom: 28 }}>
+        <div className="form-hero-icon">🧳</div>
+        <div>
+          <h1 className="form-hero-title">Your Profile</h1>
+          <p className="form-hero-quote">"The journey of a thousand miles begins with a single step." — Lao Tzu</p>
+        </div>
+      </div>
 
-      <div className="card card-p">
-        {/* Avatar */}
-        <div style={{ display:'flex', justifyContent:'center', marginBottom:28 }}>
-          <div style={{ position:'relative' }}>
-            <div
-              onClick={() => fileRef.current?.click()}
-              style={{ width:104, height:104, borderRadius:'50%', background:'linear-gradient(135deg,#0058be,#6d28d9)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:30, fontWeight:700, cursor:'pointer', overflow:'hidden', border:'4px solid #fff', boxShadow:'0 4px 20px rgba(0,88,190,0.25)', color:'#fff' }}
-            >
-              {preview ? <img src={preview} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover' }}/> : getInitials(form.first_name, form.last_name)}
+      <div className="card card-p form-card">
+        {/* Avatar section */}
+        <div className="profile-avatar-section">
+          <div className="profile-avatar-wrap" onClick={() => fileRef.current?.click()}>
+            <div className="profile-avatar">
+              {preview
+                ? <img src={preview} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                : <span>{getInitials(form.first_name, form.last_name)}</span>
+              }
             </div>
-            <div
-              style={{ position:'absolute', bottom:3, right:3, background:'#0058be', borderRadius:'50%', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', boxShadow:'0 2px 8px rgba(0,88,190,0.4)', border:'2px solid #fff' }}
-              onClick={() => fileRef.current?.click()}
-            >
-              <Upload size={12} color="#fff"/>
+            <div className="profile-avatar-upload-btn">
+              <Upload size={13} color="#fff" />
             </div>
-            <input ref={fileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handlePhoto}/>
           </div>
+          <div>
+            <div className="profile-avatar-name">{form.first_name} {form.last_name}</div>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={() => fileRef.current?.click()}
+              style={{ marginTop: 8 }}
+            >
+              <Upload size={13} /> Change Photo
+            </button>
+          </div>
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handlePhoto} />
         </div>
 
+        <div className="form-section-divider" style={{ margin: '20px 0' }} />
+
         <form onSubmit={handleSave} noValidate>
+          {/* Personal Info */}
+          <div className="form-section-header">
+            <User size={16} /> Personal Information
+          </div>
+
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">First Name</label>
@@ -96,13 +118,32 @@ export default function ProfilePage() {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Email (read-only)</label>
-            <input className="form-input" value={form.email} readOnly style={{ opacity:0.6, cursor:'not-allowed' }} />
+            <label className="form-label">
+              <Mail size={14} style={{ display: 'inline', marginRight: 5 }} />
+              Email address
+              <span className="form-label-badge">Read-only</span>
+            </label>
+            <input
+              className="form-input"
+              value={form.email}
+              readOnly
+              style={{ opacity: 0.6, cursor: 'not-allowed', background: 'var(--cl-surface-variant, #e8e9f3)' }}
+            />
+          </div>
+
+          <div className="form-section-divider" />
+
+          {/* Location */}
+          <div className="form-section-header">
+            <MapPin size={16} /> Location
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">Phone</label>
+              <label className="form-label">
+                <Phone size={14} style={{ display: 'inline', marginRight: 5 }} />
+                Phone
+              </label>
               <input className="form-input" value={form.phone} onChange={set('phone')} placeholder="+91 99999 99999" />
             </div>
             <div className="form-group">
@@ -116,10 +157,17 @@ export default function ProfilePage() {
             <input className="form-input" value={form.country} onChange={set('country')} placeholder="India" />
           </div>
 
+          <div className="form-section-divider" />
+
+          {/* AI Settings */}
+          <div className="form-section-header">
+            <Key size={16} /> AI Settings
+          </div>
+
           <div className="form-group">
             <label className="form-label">
               Gemini API Key
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 8 }}>for AI packing lists</span>
+              <span className="form-label-hint">— powers AI packing lists</span>
             </label>
             <input
               className="form-input"
@@ -129,14 +177,22 @@ export default function ProfilePage() {
               placeholder="AIzaSy…"
               autoComplete="off"
             />
-            <span style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4, display: 'block' }}>
-              Get a free key at{' '}
-              <a href="https://aistudio.google.com" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)' }}>aistudio.google.com</a>
-            </span>
+            <div className="form-hint" style={{ marginTop: 6 }}>
+              🔑 Get a free key at{' '}
+              <a href="https://aistudio.google.com" target="_blank" rel="noreferrer"
+                style={{ color: 'var(--cl-primary)', fontWeight: 600 }}>
+                aistudio.google.com
+              </a>
+            </div>
           </div>
 
-          <button className="btn btn-primary btn-full" type="submit" disabled={saving} style={{ marginTop:12 }}>
-            {saving ? <Spinner size={16} color="#fff"/> : <><Save size={15}/> Save Changes</>}
+          <button
+            className="btn btn-primary btn-full"
+            type="submit"
+            disabled={saving}
+            style={{ marginTop: 20, height: 48 }}
+          >
+            {saving ? <Spinner size={16} color="#fff" /> : <><Save size={15} /> Save Changes</>}
           </button>
         </form>
       </div>

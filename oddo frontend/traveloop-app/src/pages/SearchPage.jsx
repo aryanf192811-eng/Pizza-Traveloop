@@ -73,9 +73,19 @@ export default function SearchPage() {
     <div>
       <div className="page-header"><h1 className="page-title">Explore</h1></div>
 
-      <div className="search-bar-wrap">
-        <Search size={18} className="search-bar-icon" />
-        <input className="form-input search-bar-input" value={query} onChange={e => handleSearch(e.target.value)} placeholder="Search cities, activities…" autoFocus />
+      <div style={{ position: 'relative', margin: '0 0 32px 0', width: '100%', maxWidth: '672px' }}>
+        <div style={{ background: 'var(--cl-surface-lowest, #ffffff)', borderRadius: '999px', padding: '8px', display: 'flex', alignItems: 'center', boxShadow: '0px 8px 24px rgba(59,130,246,0.08)', border: '1px solid rgba(194,198,214,0.3)' }}>
+          <div style={{ padding: '0 16px', color: 'var(--cl-primary)' }}>
+            <Search size={20} />
+          </div>
+          <input 
+            style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', fontSize: '16px', color: 'var(--cl-on-surface)', padding: '12px 0' }} 
+            placeholder="Search cities, activities…" 
+            value={query} 
+            onChange={e => handleSearch(e.target.value)}
+            autoFocus
+          />
+        </div>
       </div>
 
       {loading && <div style={{ textAlign:'center', padding:32 }}><Spinner size={32}/></div>}

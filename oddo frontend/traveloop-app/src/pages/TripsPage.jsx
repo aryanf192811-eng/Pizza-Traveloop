@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, SlidersHorizontal } from 'lucide-react';
+import { Plus, Search, Map } from 'lucide-react';
 import api from '../api/axios';
 import { useToast } from '../hooks/useToast';
 import { TRIP_STATUSES, SORT_OPTIONS } from '../utils/validators';
@@ -44,47 +44,71 @@ export default function TripsPage() {
   };
 
   return (
-    <div>
-      <div className="page-header">
-        <div><h1 className="page-title">My Trips</h1></div>
-        <button className="btn btn-primary" onClick={() => navigate('/trips/create')}><Plus size={16} /> Plan New Trip</button>
+    <div className="w-full max-w-[1280px] mx-auto pb-12 pt-4 px-4 md:px-6">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="font-headline-lg text-[32px] font-bold text-on-surface">My Trips</h1>
+          <p className="font-body-md text-[16px] text-on-surface-variant mt-2">Manage and view all your planned adventures.</p>
+        </div>
+        <button className="bg-primary text-on-primary font-label-md text-[14px] px-6 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform duration-300 shadow-[0px_4px_20px_rgba(59,130,246,0.2)] whitespace-nowrap w-full md:w-auto" onClick={() => navigate('/trips/create')}>
+          <Plus size={18} /> Plan New Trip
+        </button>
       </div>
 
-      {/* Filter bar */}
-      <div className="filter-bar">
-        <div className="status-tabs">
-          {['all', ...TRIP_STATUSES].map(s => (
-            <button key={s} className={`status-tab${activeStatus === s ? ' active' : ''}`} onClick={() => setActiveStatus(s)}>
-              {s.charAt(0).toUpperCase() + s.slice(1)}
-            </button>
-          ))}
+      {/* Filter Bar */}
+      <div className="bg-surface-container-lowest/80 backdrop-blur-xl rounded-xl p-2 mb-8 flex flex-col lg:flex-row justify-between items-center gap-4 shadow-[0px_4px_20px_rgba(59,130,246,0.04)] border border-outline-variant/30">
+        <div className="flex gap-1 bg-surface-variant/30 p-1 rounded-lg w-full lg:w-auto overflow-x-auto hide-scrollbar">
+          {['all', ...TRIP_STATUSES].map(s => {
+            const isActive = activeStatus === s;
+            return (
+              <button
+                key={s}
+                onClick={() => setActiveStatus(s)}
+                className={`px-4 py-2 rounded-md font-label-md text-[14px] transition-colors whitespace-nowrap ${isActive ? 'bg-surface-container-lowest text-primary shadow-sm font-bold' : 'text-on-surface-variant hover:bg-surface-variant/50'}`}
+              >
+                {s.charAt(0).toUpperCase() + s.slice(1)} {s === 'all' && 'Trips'}
+              </button>
+            );
+          })}
         </div>
-        <div className="input-wrapper" style={{ flex: 1, maxWidth: 300 }}>
-          <input className="form-input" placeholder="Search trips…" value={search} onChange={e => handleSearch(e.target.value)} />
-          <span className="input-icon-right"><Search size={14} /></span>
+
+        <div className="flex items-center gap-3 w-full lg:w-auto">
+          <div className="relative flex-1 lg:w-64">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-outline"><Search size={18} /></span>
+            <input
+              className="w-full bg-[#EEF6FF] focus:bg-surface-container-lowest border-transparent focus:border-primary text-on-surface font-body-md text-[14px] rounded-lg pl-10 pr-4 py-2 transition-colors placeholder:text-outline focus:ring-1 focus:outline-none"
+              placeholder="Search trips..."
+              value={search}
+              onChange={e => handleSearch(e.target.value)}
+            />
+          </div>
         </div>
-        <select className="form-select" style={{ width: 140 }} value={sort} onChange={e => setSort(e.target.value)}>
-          {SORT_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
       </div>
 
       {/* States */}
       {error ? (
-        <div className="empty-state">
-          <div className="empty-title" style={{ color: 'var(--red)' }}>{error}</div>
-          <button className="btn btn-secondary" onClick={() => load(activeStatus, search, sort)}>Retry</button>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="text-error font-headline-md mb-4">{error}</div>
+          <button className="bg-surface-variant text-on-surface-variant px-6 py-2 rounded-full hover:bg-outline-variant transition-colors" onClick={() => load(activeStatus, search, sort)}>Retry</button>
         </div>
       ) : loading ? (
-        <div className="grid-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <SkeletonCard /><SkeletonCard /><SkeletonCard />
+        </div>
       ) : trips.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon"><SlidersHorizontal size={28} /></div>
-          <div className="empty-title">No trips found</div>
-          <div className="empty-desc">Start planning your next adventure!</div>
-          <button className="btn btn-primary" onClick={() => navigate('/trips/create')}><Plus size={16} /> Plan New Trip</button>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-48 h-48 mb-6 rounded-full bg-[#EEF6FF] flex items-center justify-center">
+            <Map size={64} className="text-primary-fixed-dim" />
+          </div>
+          <h2 className="font-headline-lg text-[32px] font-bold text-on-surface mb-2">No trips yet</h2>
+          <p className="font-body-lg text-[18px] text-on-surface-variant mb-6 max-w-md">Your itinerary is a blank canvas. Start planning your next great adventure.</p>
+          <button className="bg-primary text-on-primary font-label-md text-[14px] px-8 py-3 rounded-full flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform duration-300 shadow-[0px_4px_20px_rgba(59,130,246,0.2)]" onClick={() => navigate('/trips/create')}>
+            Start Planning
+          </button>
         </div>
       ) : (
-        <div className="grid-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {trips.map(t => <TripCard key={t.id} trip={t} />)}
         </div>
       )}
